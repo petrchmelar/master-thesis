@@ -101,9 +101,7 @@ Proto by měla být zadávána nejdelší zkratka nebo symbol.
 Příklad definice zkratky \zk{symfvz} je na výpisu \ref{lst:symfvz}.
 
 \iflanguage{czech}{\shorthandoff{-}}{}
-\iflanguage{slovak}{\shorthandoff{-}}{}
 \lstinputlisting[language={[LaTeX]TeX},frame=single,caption={Ukázka sazby zkratek},label=lst:symfvz,numbers=left,linerange={bsymfvz-\%\%\%\ esymfvz},includerangemarker=false]{text/zkratky.tex}
-\iflanguage{slovak}{\shorthandon{-}}{}
 \iflanguage{czech}{\shorthandon{-}}{}
 
 \noindent
@@ -112,8 +110,6 @@ Ukončení seznamu je provedeno ukončením prostředí:
 
 \vspace{\fill}
 
-\noindent
-{\bf Poznámka k~výpisům s~použitím volby jazyka \verb|czech| nebo \verb|slovak|:}\newline
 Pokud Váš zdrojový kód obsahuje znak spojovníku \verb|-|, pak překlad může skončit chybou.
 Ta je způsobená tím, že znak \verb|-| je v~českém nebo slovenském nastavení balíčku \verb|babel| tzv.\ aktivním znakem.
 Přepněte znak \verb|-| na neaktivní příkazem \verb|\shorthandoff{-}| těsně před výpisem a hned za ním jej vraťte na aktivní příkazem \verb|\shorthandon{-}|.
@@ -127,10 +123,8 @@ Na výpisu \ref{lst:priklad.vypis.kodu.Matlab} naleznete příklad kódu pro Mat
 
 \lstnewenvironment{matlab}[1][]{%
 \iflanguage{czech}{\shorthandoff{-}}{}%
-\iflanguage{slovak}{\shorthandoff{-}}{}%
 \lstset{language=Matlab,numbers=left,#1}%
 }{%
-\iflanguage{slovak}{\shorthandon{-}}{}%
 \iflanguage{czech}{\shorthandon{-}}{}%
 }
 
