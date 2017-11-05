@@ -21,6 +21,7 @@ czech              % originální jazyk je čeština (výchozí)
 
 \usepackage{graphicx} % Balíček 'graphicx' pro vkládání obrázků
 											% Nutné pro vložení log školy a fakulty
+\graphicspath{{obrazky/}}
 
 \usepackage[
 	nohyperlinks				% Nebudou tvořeny hypertextové odkazy do seznamu zkratek
@@ -129,6 +130,10 @@ semestral						%	sazba zprávy semestrálního projektu
                       % ostatní balíčky nepřepisovaly jeho příkazy
 
 \usepackage{siunitx}
+
+% Cleveref settings
+\usepackage{cleveref}
+\crefname{figure}{obrázek}{obrázky}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%      Definice informací o dokumentu             %%%%%%%%%%
