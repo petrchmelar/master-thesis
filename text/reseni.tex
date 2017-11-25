@@ -121,15 +121,44 @@ je druhou elektrodou rentgenky, která má za úkol generování paprsku elektro
 \end{figure}
 
 \subsection{Detekce rentgenového záření}
+Rentgenové záření může být detekováno pomocí tzv. detektorů rentgenového záření. Tyto detektory lze dělit podle způsobu záznamu rentgenového záření na analogové a digitální. Analogové detektory využívají principu záznamu rentgenového záření v podobě snímku na film, kdežto digitální zaznamenávají snímky jako digitální snímek. Digitální detektory lze dělit dle toho, zda je snímek digitalizován přímo během procesu ozařování (\zkratka{zk:DR}) nebo až po procesu ozařování (\zkratka{zk:CR}). Systémy patřící do \zkratka{zk:DR} lze rozdělit dle toho, zda snímají přímo rentgenové záření nebo rentgenové záření převedené na světelné záření na \zkratka{zk:DR} s přímým a nepřímým převodem rentgenového záření. V případě digitálních detektorů je často zmiňována velikost pixelů. Touto velikostí je myšlena plocha snímače rentgenové nebo světelného záření detektoru, který dopovídá jednomu pixelu.
+
+\subsubsection{Parametry detektorů}
+\paragraph{Velikost pixelu, velikost detektoru a rozlišení}
+jsou jedněmi ze základních parametrů digitálních detektorů. Velikost pixelů, respektive velikost snímací plochy snímače odpovídající pixelu a vzdálenost mezi nimi ovlivňují především prostorové rozlišení detektoru. \cite[str.~682]{Advances-in-Digital-Radiography} Celková velikost detektoru poté ovlivňuje jak velkou scénu lze snímat (flat-panel detektory), případně jaký způsobem je scéna snímána (snímání pohybujícího se rentgenovaného předmětu nebo scény pomocí řádkového CCD detektoru např. na výrobní lince). Rozlišení digitálních detektorů odpovídá počtu pixelů/snímačů a je udáváno v počtech pixelů na šířku a výšku.
+
+\paragraph{Prostorové rozlišení}
+představuje minimální vzdálenost mezi dvěma kontrastními objekty, při které lze tyto dva objekty pomocí detektoru od sebe rozlišit. \cite[str.~682]{Advances-in-Digital-Radiography} Jinými slovy je to vzdálenost mezi dvěma objekty na rentgenovém snímku, při kterém nám tyto dva objekty nesplývají v jeden. Jak již bylo zmíněno, maximální prostorové rozlišení digitálních detektorů vychází z minimální velikosti pixelů těchto detektorů. Vezmeme-li v potaz Nyquistův teorém o vzorkovací frekvenci, maximální dosažitelné rozlišení v případě, že má pixel velikost $a$ je nižší než $a/2$. 
+
+Mimo minimální velikosti pixelů prostorové rozlišení ovlivňuje také rozptyl uvnitř detektorů. Například selenové polovodičové detektory s přímým převodem mají lepší prostorové rozlišení než detektory s nepřímým převodem s nestrukturovanou scintilační vrstvou.
+
+\paragraph{Modulační přenosová funkce -- Modulation Transfer Function (MTF)}
+úzce souvisí s prostorovým rozlišením detektoru. \zk{zk:MTF} jako jednotka je vhodná pro určení pravého nebo efektivního rozlišení detektoru, protože zahrnuje míru rozostření a změny kontrastu v v určitém rozsahu prostorových frekvencí.\zk{zk:MTF} lze definovat jako podíl kontrastu výstupního signálu detektoru ku kontrastu vstupního signálu detektoru. \cite{Modulacni-Prenosova-Funkce} Jinými slovy \zk{zk:MTF} říká, jak se  přemění kontrast vstupního signálu detektoru pro určitou prostorovou frekvenci vstupního signálu na kontrast výstupního signálu. \cite[str.~682]{Advances-in-Digital-Radiography} Prostorová frekvence vstupního signálu je uváděna v cyklech na \SI{}{\mm}.
+
+\paragraph{Dynamický rozsah}
+detektoru vyjadřuje odezvu výstupu detektoru na jeho vstup. Dynamický rozsah je popsán funkcí dávky rentgenového záření jejíž výstupem jsou hodnoty v rozsahu od minimální do maximální možné hodnoty výstupu detektoru. Například v případě filmových systémů je tento rozsah poměrně malý, tudíž se může stát, že nesprávně zvolenou expoziční dobou dochází k přeexponování snímku. Naopak u digitálních detektorů je dynamický rozsah detektoru poměrně vysoký, čímž riziko přeexponování snímku klesá, ale naopak například v lékařské praxi může docházet k vystavování pacienta zbytečně velké dávce rentgenového záření. Závislosti výstupů filmových a obecných digitálních detektorů na dávce rentgenového záření popisuje \cref{fig:dynamic-range}. \cite[str.~682]{Advances-in-Digital-Radiography}
+
+\begin{figure}[ht]
+\centering
+\includegraphics{dynamic-range}
+\caption{Závislost výstupu detektorů na dávce rentgenového záření. \cite[str.~682]{Advances-in-Digital-Radiography}}
+\label{fig:dynamic-range}
+\end{figure}
+
+\paragraph{Detekční kvantová účinnost -- Detective Quantim Efficiency (DQE)}
+určuje účinnost detektoru při převodu energie fotonu rentgenového záření na výstupní signál. \zk{zk:DQE} lze popsat jako poměr poměru signál-šum -- signal-to-noise ratio (SNR) výstupního signálu ku SNR vstupního signálu. SNR výstupního a vstupního signálu je funkce závislá na prostorové frekvenci. \zk{zk:SNR} a tím i \zk{zk:DQE} jsou závislé na frekvenci, \zk{zk:MTF} a materiálu detektoru. 
+
+Čím vyšší hodnota \zk{zk:DQE} je, tím menší dávka rentgenového záření je potřeba k získání snímku o stejné kvalitě oproti detektoru s nižší hodnotou \zk{zk:DQE}. Tato závislost lze také vyjádřit tak, že při stálé době expozice detektor s vyšší \zk{zk:DQE} detekuje kvalitnější snímek oproti detektoru s nižší hodnotou \zk{zk:DQE}. Hodnota \zk{zk:DQE} ideálního detektoru je hodnota 1. V tomto případě by byl detektor schopen přeměnit veškerou energii rentgenového záření na obrazovou informaci.
+
 \subsubsection{Filmové systémy}
 Pro získávání snímků pomocí filmu je využíváno filmových systému. Tento systém využívá filmu, který je citlivý na světelné záření. Pro získání rentgenového snímku je třeba vložit film do rentgenového zařízení a poté film vyvolat. Film bývá vložen do plastové kazety, uvnitř kterých je fosforová vrstva, která přeměňuje rentgenové záření na světelné záření, které lze detekovat filmem vloženým do kazety. Výhodou filmových systémů je, že film jako takový má vysokou citlivost a zároveň se při detekci na rozdíl od digitálních systémů neztrácí žádná viditelná informace. \cite[str.~155]{Diagnostic-Radiology-Physics} Filmové systémy jsou využívány jak ve zdravotnictví, tak v průmyslu, nicméně jejich využití je spíše na ústupu. Vzhledem k povaze této práce se jimi práce nebude více zabývat.
 
-\subsection{Digitální systémy}
+\subsubsection{Digitální systémy}
 Čím dál častěji filmové systémy nahrazují systémy digitální. tyto systémy lze rozdělit do dvou kategorií na systémy pro nepřímou radiografii -- Computed Radiography (\zk{zk:CR}) a přímou radiografii -- Direct Radiography  (\zk{zk:DR}). \zk{zk:CR} vychází z klasických filmových systému u kterých je místo filmu využíváno speciálních fosforových fólií. Proces digitalizace je pak prováděn ve speciálním zařízení.
 \zk{zk:DR} na rozdíl od \zk{zk:CR} převádí záření na digitální snímek přímo, nicméně samotný proces převodu může být přímý (záření je převáděno snímači na elektrickou veličinu) nebo nepřímý (záření je nejprve převedeno na světelné záření, které je poté převáděno na elektrickou veličinu). \cite[str.~676]{Advances-in-Digital-Radiography}
 
-\subsubsection{Nepřímá radiografie (\zk{zk:CR})}
-Jak již bylo zmíněno výše, \zk{zk:CR} využívá technologie, která je velice podobná filmovým systémům. Paměťové fólie jsou tvořeny citlivou vrstvou tvořenou fosforovými krystaly. \cite[str.~676]{Advances-in-Digital-Radiography}. 
+\paragraph{Nepřímá radiografie (\zk{zk:CR})}
+využívá technologie, která je velice podobná filmovým systémům. Paměťové fólie jsou tvořeny citlivou vrstvou tvořenou fosforovými krystaly. \cite[str.~676]{Advances-in-Digital-Radiography}. 
 
 Proces ukládání informace a její digitalizaci popisuje \cref{fig:cr}. Energie dopadajícího záření je absorbována a dočasně (řádově několik hodin) uložena v paměťové fólii přechodem elektronů atomů fosforových krystalů do vyšších energických hladin (metastabilních). Digitalizace uložené energie ve fólii poté probíhá v zařízení, které dokáže pomocí laserového paprsku uvolňovat elektrony z metastabilních hladin do vodivostního pásu. Při uvolňování elektronů dochází k emitování světelného záření, které je poté možné měřit fotonásobičem připojeným na AD převodník. \cite[str.~677]{Advances-in-Digital-Radiography}. Výhodou tohoto systému je snadná integrace do stávajících filmových systémů. Nevýhodou může být vysoká časová náročnost vyvolávání snímků, nízké prostorové rozlišení. \cite[str~209]{Diagnostic-Radiology}
 
@@ -140,8 +169,8 @@ Proces ukládání informace a její digitalizaci popisuje \cref{fig:cr}. Energi
 \label{fig:cr}
 \end{figure}
 
-\subsubsection{Přímá radiografie (\zk{zk:DR})}
-V případě, že jsou snímky snímány přímo, jedná se o \zk{zk:DR}. \zk{zk:DR} je možné dále dělit podle způsobu převodu rentgenového řazení na \zk{zk:DR} s přímým  převodem a \zk{zk:DR} s nepřímým převodem. Při přímém převodu je rentgenové záření snímáno přímo, naopak při nepřímém převodu je záření převáděno zpravidla pomocí scintilační vrstvy na záření světelné, které je poté snímáno fotocitlivými snímači. Rozdíl mezi přímým a nepřímým převodem rentgenového záření popisuje obrázek \cref{fig:direct-indirect-tft}.
+\paragraph{Přímá radiografie (\zk{zk:DR})}
+\zk{zk:DR} je možné dále dělit podle způsobu převodu rentgenového řazení na \zk{zk:DR} s přímým  převodem a \zk{zk:DR} s nepřímým převodem. Při přímém převodu je rentgenové záření snímáno přímo, naopak při nepřímém převodu je záření převáděno zpravidla pomocí scintilační vrstvy na záření světelné, které je poté snímáno fotocitlivými snímači. Rozdíl mezi přímým a nepřímým převodem rentgenového záření popisuje obrázek \cref{fig:direct-indirect-tft}.
 
 \begin{figure}[ht]
 \centering
@@ -176,5 +205,4 @@ využívá scintilační vrstvy k převodu rentgenového záření na světelné
 
 V případě, že je jako detekční vrstva využíváno \zk{zk:TFT} matice, musí být pod scintilační vrstvu přidána vrstva detekující světelné záření. Taková vrstva je nejčastěji tvořena foto-diodovým polem. Elektrická energie generována foto-diodovým polem je poté ukládána pomocí kondenzátorů \zk{zk:TFT} matice a následně  čtena AD převodníkem.
 
-Detekční vrstva může být také realizována pomocí \zkratka{zk:CCD}. V tomto případě je pomocí \zk{zk:CCD} detektorů přímo detekováno viditelné světlo, které je generováno v scintilační vrstvě. Díky poměrně malé velikosti \zk{zk:CCD} snímačů je nutné snímače kombinovat, případně využívat čoček.
-
+Detekční vrstva může být také realizována pomocí \zkratka{zk:CCD}. V tomto případě je pomocí \zk{zk:CCD} detektorů přímo detekováno viditelné světlo, které je generováno v scintilační vrstvě. Díky poměrně malé velikosti \zk{zk:CCD} snímačů je nutné snímače kombinovat do matic, případně využívat čoček.
