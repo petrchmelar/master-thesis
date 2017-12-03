@@ -206,3 +206,21 @@ využívá scintilační vrstvy k převodu rentgenového záření na světelné
 V případě, že je jako detekční vrstva využíváno \zk{zk:TFT} matice, musí být pod scintilační vrstvu přidána vrstva detekující světelné záření. Taková vrstva je nejčastěji tvořena foto-diodovým polem. Elektrická energie generována foto-diodovým polem je poté ukládána pomocí kondenzátorů \zk{zk:TFT} matice a následně  čtena AD převodníkem.
 
 Detekční vrstva může být také realizována pomocí \zkratka{zk:CCD}. V tomto případě je pomocí \zk{zk:CCD} detektorů přímo detekováno viditelné světlo, které je generováno v scintilační vrstvě. Díky poměrně malé velikosti \zk{zk:CCD} snímačů je nutné snímače kombinovat do matic, případně využívat čoček.
+
+\section{Metody předzpracování rentgenových snímků}
+
+\subsection{Reprezentace digitálního snímku}
+Pořízený digitální snímek může být reprezentován pomocí signálu v prostorové nebo frekvenční oblasti. Způsob reprezentace pořízeného obrázku se odvíjí především od způsobu jeho pořizování. V případě digitální radiografie jsou snímky pořizovány v prostorové oblasti. Snímky ve frekvenční oblasti lze například nalézt u magnetické rezonance -- Magnetic Resonance Inspection (MRI).
+
+\paragraph{Prostorová oblast}
+digitálních snímků je reprezentována pomocí matice o velikosti $M \times N$, kde $M$ je počet řádků a $N$ počet sloupců. Jednotlivé prvky matice se nazývají pixely. Počet sloupců a řádků určuje rozlišení snímku a je udáváno jako $M \times N$ nebo jako výsledek jejich součinu, čili absolutní počet pixelů -- například rozlišení $1024 \times 1024$ lze zapsat jako \num{1048576} pixelů.  Pixely mohou nabývat hodnot od 0 do $2^{n}$, kde číslo $n$ je nazýváno jako bitová hloubka obrázku. 
+
+Digitální snímek v prostorového oblasti se skládá z kanálů, které jsou reprezentovány pomocí matic o stejném počtu řádků a sloupců, jako má výsledný digitální snímek. Počet kanálů a to, co reprezentují je určeno barevným modelem. Například jedním z nejznámějších barevných modelů je model RGB, který definuje 3 barevné kanály: červený (RED), zelený (GREEN) a modrý (BLUE). Každý kanál reprezentuje intenzitu jedné z barev a jejich sečtením vzniká výsledný snímek. Vzhledem k způsobu pořizování rentgenových snímků, mají snímky pouze jeden kanál, který zpravidla bývá interpretován pomocí stupňů šedi -- grayscale.
+
+\paragraph{Frekvenční oblast}
+digitální snímků reprezentuje frekvence obsažené v obrázku. Frekvence signálu digitálního snímku odpovídá počtu cyklů na jeden pixel. Například pokud bude obrázek obsahovat řádek, který se skládá z periodicky se opakující dvojice černého a bílého pixelu, digitální snímek bude obsahovat signál o frekvenci \SI{1}{\hertz}. 
+
+Vzhledem k tomu, že ve většině případů je pořízený snímek v prostorové oblasti musí být snímek do frekvenční oblasti převeden. V případě digitálních snímků bývá pro převod nejčastěji využíváno diskrétní Fourierovy transformace (DFT). Pro zpětný převod je poté využíváno zpětné DFT. DFT je definována jako:
+\begin{equation}
+X(k,l)=\sum_{n=0}^{N-1} \sum_{m=0}^{M-1} f(n,m) e^{-j2\pi nk/N - j2\pi ml/M}
+\end{equation}
