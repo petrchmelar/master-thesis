@@ -213,14 +213,98 @@ Detekční vrstva může být také realizována pomocí \zkratka{zk:CCD}. V tom
 Pořízený digitální snímek může být reprezentován pomocí signálu v prostorové nebo frekvenční oblasti. Způsob reprezentace pořízeného obrázku se odvíjí především od způsobu jeho pořizování. V případě digitální radiografie jsou snímky pořizovány v prostorové oblasti. Snímky ve frekvenční oblasti lze například nalézt u magnetické rezonance -- Magnetic Resonance Inspection (MRI).
 
 \paragraph{Prostorová oblast}
-digitálních snímků je reprezentována pomocí matice o velikosti $M \times N$, kde $M$ je počet řádků a $N$ počet sloupců. Jednotlivé prvky matice se nazývají pixely. Počet sloupců a řádků určuje rozlišení snímku a je udáváno jako $M \times N$ nebo jako výsledek jejich součinu, čili absolutní počet pixelů -- například rozlišení $1024 \times 1024$ lze zapsat jako \num{1048576} pixelů.  Pixely mohou nabývat hodnot od 0 do $2^{n}$, kde číslo $n$ je nazýváno jako bitová hloubka obrázku. 
+digitálních snímků je reprezentována pomocí matice o velikosti $M \times N$, kde $M$ je počet řádků a $N$ počet sloupců. Jednotlivé prvky matice se nazývají pixely. Počet sloupců a řádků určuje rozlišení snímku a je udáváno jako $M \times N$ nebo jako výsledek jejich součinu, čili absolutní počet pixelů -- například rozlišení $1024 \times 1024$ lze zapsat jako \num{1048576} pixelů.  Pixely mohou nabývat hodnot od 0 do $2^{n}$, kde číslo $n$ je nazýváno jako bitová hloubka snímků. V případě digitálních rentgenových snímků bývá datová hloubka nejčastěji 10, 12 nebo 16 bitů, nicméně hodnota bývá zpravidla ukládána ve 2 bytech, tudíž v případě bitové hloubky 10 nebo 12 bitů zůstávají vyšší bity nulové.
 
 Digitální snímek v prostorového oblasti se skládá z kanálů, které jsou reprezentovány pomocí matic o stejném počtu řádků a sloupců, jako má výsledný digitální snímek. Počet kanálů a to, co reprezentují je určeno barevným modelem. Například jedním z nejznámějších barevných modelů je model RGB, který definuje 3 barevné kanály: červený (RED), zelený (GREEN) a modrý (BLUE). Každý kanál reprezentuje intenzitu jedné z barev a jejich sečtením vzniká výsledný snímek. Vzhledem k způsobu pořizování rentgenových snímků, mají snímky pouze jeden kanál, který zpravidla bývá interpretován pomocí stupňů šedi -- grayscale.
 
 \paragraph{Frekvenční oblast}
-digitální snímků reprezentuje frekvence obsažené v obrázku. Frekvence signálu digitálního snímku odpovídá počtu cyklů na jeden pixel. Například pokud bude obrázek obsahovat řádek, který se skládá z periodicky se opakující dvojice černého a bílého pixelu, digitální snímek bude obsahovat signál o frekvenci \SI{1}{\hertz}. 
+digitální snímků reprezentuje frekvence obsažené v obrázku. Frekvence signálu digitálního snímku odpovídá počtu cyklů na jeden pixel. Například pokud snímek obsahuje řádek, který se skládá z periodicky se opakující dvojice černého a bílého pixelu, digitální snímek bude obsahovat signál o frekvenci \SI{1/2}{\hertz}. 
 
 Vzhledem k tomu, že ve většině případů je pořízený snímek v prostorové oblasti musí být snímek do frekvenční oblasti převeden. V případě digitálních snímků bývá pro převod nejčastěji využíváno diskrétní Fourierovy transformace (DFT). Pro zpětný převod je poté využíváno zpětné DFT. DFT je definována jako:
 \begin{equation}
-X(k,l)=\sum_{n=0}^{N-1} \sum_{m=0}^{M-1} f(n,m) e^{-j2\pi nk/N - j2\pi ml/M}
+\label{eq:dft}
+F(u,v)=\sum_{x=0}^{M-1} \sum_{y=0}^{N-1} f(x,y) e^{\frac{-j2\pi ux}{M} - \frac{j2\pi vy}{N}}
 \end{equation}
+a zpětnou DFT jako:
+\begin{equation}
+f(x,y)=\frac{1}{MN}\sum_{u=0}^{M-1}\sum_{v=0}^{N-1}F(u,v)e^{\frac{j2\pi ux}{M}+\frac{j2\pi vy}{N}},
+\end{equation}
+kde $f(n,m)$ představuje konkrétní pixel obrázku v prostorové oblasti s indexem $n$ a $m$, $N$ a $M$ jsou rozměry velikost snímku, $F(k,l)$ je reprezentace snímku ve frekvenční oblasti pro různé frekvence reprezentované pomocí $k$ a $l$. Velikost $k$ a $l$ se pohybuje v rozsahu od 0 do $M-1$ a od 0 do $N-1$
+, přičemž $F(0,0)$ udává velikost stejnosměrné složky obrázku a $F(M-1,N-1)$ udává velikost složky s nejvyšší možnou frekvencí. Normalizační člen zpětné DFT $\frac{1}{MN}$ může být přesunuta do rovnice \ref{eq:dft}, kdy pro $F(0,0)$ je poté stejnosměrná složka rovna průměrné hodnotě pixelů snímku.
+
+\subsection{Metody předzpracování rentgenových snímků}
+Operace prováděné při předzpracování digitálních RTG snímků lze dle Baxese \cite{baxes} a Gonzáleze \cite{Gonzalez} rozdělit do pěti základních kategorií. Tyto kategorie zahrnují:
+\begin{itemize}
+\item Obnovení -- obnovení poškozených snímků například kompresí, rozmazáním či ztrátou dat.
+\item Analýzu -- operace zahrnující segmentaci, klasifikaci apod. 
+\item Syntézu -- sloučení více snímků pro získání více informací. Sloučením může vzniknout například nový snímek nebo 3D model v případě \zkratka{zk:CT}.
+\item Zvýšení kvality -- operace sloužící pro zvýšení kvality za účelem zvýšení diagnostické hodnoty snímku. Nejčastěji se jedná o zvýraznění hran, úpravu kontrastu apod.
+\item Kompresi -- snížení velikosti snímků.
+\end{itemize}
+
+V případě digitálních rentgenových snímků a metod jejich předzpracování se můžeme setkat s operacemi ze všech kategorií. V případě operací pro obnovení se nejčastěji setkáváme s odstraněním šumu který vzniká díky nehomogenitě generovaného rentgenového záření. Operace pro analýzu zahrnují především segmentaci obrazu a klasifikaci. V případě operací pro zvyšování kvality je v radiologii využíváno především zvýrazňování hran, úpravy kontrastu a dynamického rozsahu. Kompresní operace jsou využívány především při ukládání a archivaci digitálních snímků, kdy je kladen důraz na snížení velikosti digitálních snímků při zachování jejich dostatečné kvality.
+
+\subsubsection{Odstranění šumu}
+Filtrováním digitálních rentgenových snímků se rozumí provádění operací za účelem zvýšení jejich kvality, především z hlediska rozlišení, kontrastu a šumu. V případě filtrování v prostorové oblasti jsou operace prováděny postupně na jeden nebo skupinu pixelů.
+\paragraph{Průměrování}
+je jedním z nejjednodušších filtrů. Funguje na principu nahrazení hodnoty pixelu hodnotou průměru jeho okolí o velikosti $N$. Díky nahrazení hodnoty pixelu průměrem jeho okolí dochází k filtrování složek s vysokou frekvencí ve frekvenční oblasti. Vliv filtru a změny velikosti jeho okolí ukazuje \cref{fig:mean-filter}. Z obrázku je zřejmé, že filtr filtruje vysokofrekvenční složky -- tmavá linka ve spodní části obrázku a čáry na obloze. Matematicky lze průměrovací filtr vyjádřit pomocí konvoluce následovně:
+
+\begin{equation}
+\label{eq:mean1}
+I_{filtered} = I \ast K
+\end{equation}
+\begin{equation}
+\label{eq:mean2}
+K = \frac{1}{N^{2}}\begin{bmatrix}
+ &1  &1 &\dots  &1 \\ 
+ &1  &1 &\dots  &1 \\ 
+ &\vdots  &\vdots &\ddots  &\vdots \\ 
+ &1  &1 &\dots  &1 
+\end{bmatrix},
+\end{equation}
+kde $N$ určuje velikost okolí -- velikost konvoluční matice $N\times N$, $I$ filtrovaný snímek a $I_{filtered}$ snímek po aplikaci filtru.
+
+\begin{figure}[h]
+\centering
+\includegraphics{mean-filter}
+\caption{Původní snímek (A) a snímky na které je aplikován průměrovací filtr s okolím $\protect N=10$ (B) a okolím $\protect N=15$ (C).}
+\label{fig:mean-filter}
+\end{figure}
+
+Ve vztahu k radiologii průměrovací filtr dokáže vyhladit snímek díky odstranění šumu s vysokou frekvencí. Mimo odstranění šumu je průměrovací filtr využíván před dalšími kroky předzpracování digitálních rentgenových snímků. \cite{Diagnostic-Radiology-Physics}
+
+\paragraph{Gaussův filtr}
+lze stejně jako průměrovací filtr definovat pomocí konvoluce a stejně jako průměrovací filtr se chová jako dolnopropustní filtr -- filtruje vysokofrekvenční složky. V případě Gaussova filtru však konvoluční matice nezajišťuje průměrování, ale je vygenerována na základě aproximace Gaussova rozložení dle rovnice \cite[str.~139]{Image-Processing-Analysis-and-Machine-Vision}:
+
+\begin{equation}
+\label{eq:gaussian1}
+G(x,y)=e^{\frac{-(x^2+y^2)}{2\sigma^2}},
+\end{equation}
+kde $x$ a $y$ jsou souřadnice a $\sigma$ směrodatná odchylka. Často bývá rovnice \ref{eq:gaussian1} rozšiřována o normalizační členy:
+\begin{equation}
+\label{eq:gaussian2}
+G(x,y)= \frac{1}{2\pi\sigma^2} e^{\frac{-(x^2+y^2)}{2\sigma^2}} 
+\end{equation}
+\begin{equation}
+\label{eq:gaussian3}
+G(x,y)= \frac{1}{\sqrt{2\pi}\sigma} e^{\frac{-(x^2+y^2)}{2\sigma^2}}
+\end{equation}
+
+Vzhledem k tomu, že normální rozložení lze definovat pro všechna reálná čísla, výsledná matice by byla nekonečně veliká, proto se v praxi často velikost matice omezuje tak, aby matice obsahovala všechny hodnoty normálního rozložení v intervalu $<-3\sigma, 3\sigma>$. Aplikaci Gaussova filtru na reálný snímek popisuje \cref{fig:gaussian-filter}. Stejně jako u průměrovacího filtru je z obrázku zřejmá dolnopropustní charakteristika Gaussova filtru.
+
+\begin{figure}[h]
+\centering
+\includegraphics{gaussian-filter}
+\caption{Původní snímek (A) a snímky na které je aplikován Gaussův filtr s parametrem $\protect\sigma=3$ (B) a $\protect\sigma=5$ (C).}
+\label{fig:gaussian-filter}
+\end{figure}
+
+\paragraph{Mediánový filtr} nahrazuje každý pixel snímku mediánem hodnot v okolí pixelu $N \times N$. Medián hodnot jako takový je nelineární operace, proto ho není možné reprezentovat pomocí konvoluce jako v případě průměrovacího a Gaussova filtru. Mediánový filtr je využívám především k odstranění impulsového šumu. Jinými slovy šumu, který způsobuje, že některé izolované pixely mají velmi nízkou nebo naopak vysokou hodnotu oproti svému okolí. Nevýhodou tohoto filtru je, že může odstranit pro nás důležité informace, jako tenké hrany apod. Filtraci snímku, který je uměle zašuměný náhodným šumem typu "salt \and pepper" $20\%$ pokrytím snímku, ukazuje \cref{fig:median-filter}.
+
+\begin{figure}[h]
+\centering
+\includegraphics{median-filter}
+\caption{Snímek zašumělý pomocí náhodného šumu "salt \and pepper" (A) a snímky na které je aplikován mediánový filtr s parametrem okolí $\protect N=3$ (B) a $\protect N=5$ (C).}
+\label{fig:median-filter}
+\end{figure}
+
