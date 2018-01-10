@@ -1,0 +1,149 @@
+\chapter{Předzpracování série rentgenových snímků}
+
+\subsection{Odstranění šumu průměrováním}
+Digitální snímky pořízené pomocí běžných metod popsaných v literární rešerši obsahují šum, který vzniká v celém řetězci během pořizování snímku. Šum vzniká díky několika náhodným procesům:
+\begin{itemize}
+\item Počet fotonů, které opustí zdroj záření (Poissonovo rozdělení).
+\item Počet fotonů, které projdou nedotčeně ozařovaným objektem. (binomické rozdělení)
+\item Počet fotonů zachycených detektorem. (binomické rozdělení)
+\item Počet světelných fotonů vygenerovaných ve scintilační vrstvě -- DR s nepřímým převodem. (binomické rozdělení)
+\end{itemize}
+
+Vzhledem k tomu, že výběr z fotonů generovaných procesem s Poissonovým rozdělení jsou opět fotony v Poissonově rozdělení, lze říci, že majoritní podíl šumu  digitálních snímcích má Poissonovo rozdělení. \cite{X-ray-imaging-noise-and-SNR} Jednou z metod pomocí které lze tento šum odstranit je průměrování.
+
+\paragraph{Průměrování}
+je jednoduchou metodou pro odstranění šumu, která je velmi citlivá na odchylky vzniklé změnou pozice snímaného objektu v obraze. Tato metoda lze popsat pomocí následující rovnice:
+
+\begin{equation}
+\label{eq:average}
+I_{filtered} \left( x,y \right ) = \frac{1}{N} \sum_{i = 0}^{N - 1}I_{i}\left( x,y \right ),
+\end{equation}
+kde $x$ a $y$ jsou index pixelů, $N$ počet snímků v množině snímků a $I_{i}$ i-tý snímek z množiny snímků.
+
+Citlivost této metody na odchylky vzniklé změnou pozice objektu v obraze lze řešit pomocí metod založených na \zkratka{zk:AAR}. Tyto metody spočívají v předzpracování množiny snímků pomocí metod registrace obrazových dat a následném průměrování podle rovnice \ref{eq:average}.
+
+\subsubsection{Průmerování po registraci (AAR)}
+Hlavní problém, který tato metoda řeší je hledání stejných klíčových bodů mezi páry $\left\{ I_{i}, I_{j} \right\}$ pro $j = \left \{0, 1, ..., N - 1 \right \} - \left \{i \right \}$, kde $I$ je množina všech snímků, $i$ je index základního snímku vůči kterému jsou hledány klíčové body ve snímcích $I_{j}$ a $N$ je celkový počet snímků v množině $I$. Jinými slovy tato metoda spočívá v nalezení stejných klíčových bodů mezi základním snímkem například $S_{0}$ a ostatními snímky $S_{j}$ z množiny všech snímků $I$. K hledání stejných klíčových bodů mezi páry tato metoda využívá deskriptorů. Po nalezení stejných klíčových bodů je nutné na základě těchto bodů transformovat snímek $S_j$ do souřadnicové soustavy základního snímku. Po transformaci všech snímků do souřadnicové soustavy základního snímku je možné všechny snímky zprůměrovat podle rovnice \eqref{eq:average} a tím odstranit šum. Tento postup popisuje \cref{fig:AAR-flowchart}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=7cm]{AAR-flowchart}
+\caption{Vývojový diagram metody \zk{zk:AAR}.}
+\label{fig:AAR-flowchart}
+\end{figure}
+
+\paragraph{ORB (Oriented FAST and rotated BRIEF)}
+je metoda pro hledání klíčových bodů a jejich deskriptorů založena na metodách FAST (detektor klíčových bodů) a BRIEF (binární deskriptor). Tato metoda byla na vržena jako méně výpočetně náročná alternativa k metodám \zkratka{zk:SIFT} a \zkratka{zk:SURF}. Mimo nižší výpočetní náročnost dosahuje metoda \zk{zk:ORB} lepších výsledků vzhledem k natočení zkoumaného snímku (\cref{fig:orb-comparsion}). Další výhodou \zk{zk:ORB} oproti metodám \zk{zk:SURF} a \zk{zk:SIFT} je, že je vydána pod otevřenou licencí BSD, čili je oproti \zk{zk:SURF} a \zk{zk:SIFT}, které jsou patentovány zdarma. \cite{orb}
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth]{orb-comparsion}
+\caption{Porovnání úspěšnosti hledání klíčových bodů a jejich deskriptorů pro různé metody v závislosti na rotaci snímku. \cite{orb}}
+\label{fig:orb-comparsion}
+\end{figure}
+
+\paragraph{BRIEF} je metoda pro určování binárních deskriptorů \zk{zk:ORB}, která pracuje na principu testování intenzity náhodně vybraných bodů v konkrétní části snímku, která má velikost $S \times S$. Tento test lze definovat jako:
+
+\begin{equation}
+\label{eq:BRIEF-test}
+\tau \left (p; x,y \right ):= \left\{\begin{matrix}
+1 & pro \quad p\left( x\right ) < p \left(y \right )\\ 
+0 & pro \quad p\left( x\right ) \geq  p \left(y \right )\\ 
+\end{matrix}\right.,
+\end{equation}
+kde $\tau$ je výsledek testu, $p\left(x\right)$ a $p\left(y\right)$ jsou intenzity pixelů na indexech $x$ a $y$ a $p$ je zkoumaná část snímku na kterou  je test prováděn. Zkoumaná část snímku $p$ by měla být vyhlazena vyhlazovacím filtrem. Výběrem náhodných indexů $x$ a $y$ z části snímku $p$ je vytvořena sada binárních testů, kterou lze definovat jako:
+
+\begin{equation}
+\label{eq:BRIEF-test-set}
+f_{n_{d}} \left(p \right ) = \sum_{1\leq i\leq n_{d}} 2^{i-1} \tau \left(p; x_i, y_i \right ).
+\end{equation}
+Z rovnice \ref{eq:BRIEF-test-set} plyne, že deskriptor $f_{n_d}$ se bude skládat z $2^{n_d}$ výsledků testů. \cite{brief} V případě implementace pro \zk{zk:ORB} je velikost deskriptoru $n = 256$. Jak již bylo zmíněno před aplikací metody BRIEF je nutné zkoumanou část snímku nejprve vyhladit. V případě \zk{zk:ORB} je vyhlazení prováděno pomocí integračního vyhlazovacího operátoru o velikosti okna $5 \times 5$ na zkoumanou část snímku a velikosti $31 \times 31$ pixelů. Problémem metody BRIEF je, si nedokáže dobře poradit s natočenými snímky. Proto je BRIEF v rámci \zk{zk:ORB} rozšířen o natočení podle klíčových bodů. \cite{orb}
+
+\paragraph{FAST} je metodou pro detekci klíčových bodů ve snímku. Tato metoda je založena na detekci hran pomocí kruhového okolí. Algoritmus nejprve vybere pixel $\rho$  o intenzitě $I_\rho$ u kterého má být určeno, zda je hranou, či ne. Následně je zvolen vhodný práh $t$ a kruhové okolí pixelu $\rho$ o velikosti 16 pixelů. Pixel je následně považován za hranu v případě, že se po obvodu kruhového okolí nachází souvislá množina pixelů, jejichž intenzita je vyšší nebo nižší než intenzita $I_\rho$. 
+
+Mimo postupu, jenž je popsaný výše existuje varianta, která se snaží urychlit  celkový proces hledání hran. Tato metoda spočívá ve zkoumání pouze pixelu číslo 1, 9, 5 a 13. Jestliže jsou pixely 1 a 9 vyhodnoceny jako tmavší nebo světlejší než $I_\rho + t$, pak jsou stejným způsobem otestovány i pixely 5 a 13. Pixel je považován za hranu v případě, že alespoň 3 z množiny pixelů jsou světlejší nebo tmavší než $I_\rho + t$. \cite{rosten_2008_faster}.
+
+V případě implementace v \zk{zk:ORB} je využit FAST s kruhovým okolím 9. Vzhledem k tomu, že FAST neurčuje orientaci, byla tato metoda v rámci \zk{zk:ORB} rozšířena o určení orientace pomocí centroidu. \cite{orb}
+
+\begin{figure}[htb]
+\centering
+\includegraphics{fast}
+\caption{Princip výběru okolí a způsob indexování pixelů metody FAST. \cite{rosten_2008_faster}}
+\label{fig:orb-comparsion}
+\end{figure}
+
+\paragraph{RANSAC (Random sample consensus)} je metoda sloužící k nalezení modelu, který definuje vztah mezi dvěma lineárně závislými množinami. Tato metoda pracuje s předpokladem, že k definování lineárního modelu stačí pouze dva body (na rozdíl od metody nejmenších čtverců, která předpokládá, že velké množství dat dokáže eliminovat odchylky). Algoritmus této metody lze popsat pomocí následujících bodů \cite[str.~462]{Image-Processing-Analysis-and-Machine-Vision}:
+\begin{enumerate}
+\item Uvažujeme množinu bodů $X = \left\{x_1, x_2, ..., x_n \right\}$ u které předpokládáme, že odpovídá modelu, který je určen alespoň $m$ body z množiny. Například pro přímku $m = 2$.
+\item Nastavíme čítač iterací $k$ na hodnotu 1.
+\item Náhodně vybereme $m$ bodů z množiny a vypočítáme model (například pomocí metody nejmenších čtverců).
+\item S odchylkou $\eta$ určíme kolik bodů z množiny odpovídá modelu. Pokud počet překročí práh $t$, model se přepočítá z bodů, které odpovídají modelu.
+\item Zvýšíme čítač iterací o 1 a zkontrolujeme zda $k < K$, kde $K$ je maximální počet iterací. Pokud $k < K$ pokračujeme bodem 3, jinak ukončíme algoritmus a jako model zvolíme ten, kterému odpovídalo nejvíce bodů z modelu.
+\end{enumerate}
+Takto získaný model lze poté využít jako model pro transformaci souřadnicové soustavy jendoho snímku do souřadnicové soustavy druhého snímku. Jako body, na základě kterých je model vytvářen lze použít klíčové body získané pomocí ORB. 
+
+\subsubsection{Implementace}
+Na základě metod popsaných výše lze implementovat algoritmus pro odstranění šumu průměrováním. Navržený algoritmus (obrázek \ref{fig:AAR-flowchart-implementation}) upřesňuje postup z obrázku \ref{fig:AAR-flowchart} o konkrétní operace.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=12cm]{AAR-flowchart-implementation}
+\caption{Vývojový diagram AAR s konkrétně zvolenými metodami pro jednotlivé operace. \zk{zk:AAR}.}
+\label{fig:AAR-flowchart-implementation}
+\end{figure}
+
+Celý postup je implementován pomocí jazyka Python v prostředí Jupyter notebook. V implementaci je využito knihovny scikit-image, která poskytuje nástroje pro práci s obrázky včetně implementovaných metod ORB a RANSAC. Pro zobrazení výsledků je použit balíček pro zobrazování grafů matplotlib a pro matematické operace (především pro práci s maticemi) je využíváno balíčku numpy.
+
+\subsubsection{Testovací data}
+Za účelem ověření implementovaného postupu byla nasnímány a předzpracovány testovací snímky. Jako zdroj záření byla zvolena rentgenka Spellman XRB011 \cite{spellman-xrb011} s maximálním napětím v rozmezí od \SI{35}{\kV} do \SI{80}{\kV} a žhavícím proudem od \SI{0}{\micro\ampere} do \SI{700}{\micro\ampere}. Snímání záření poté obstarává flat-panel s CMOS snímači Shad-o-Box 1548 HS \cite{SB1548HS} od společnosti Teledyne Dalsa. Rozlišení detektoru je $1032 \times 1548$ a velikost snímací plochy je $\SI{10.2}{\cm} \times \SI{15.3}{\cm}$. Maximální snímkovací frekvence 30 snímku za vteřinu.
+
+Pomocí této sestavy bylo nasnímáno 20 stejných snímků v časovém rozmezí \SI{20}{\second} mezi jednotlivými snímky. Snímky byly nasnímány s \SI{60}{\kV} a \SI{250}{\micro\ampere} na rentgence při době expozice \SI{30}{\ms}. Jeden ze série nasnímaných snímků lze vidět na obrázku \ref{fig:averaging-dataset-sample} (A). Ve snímku je patrný již zmiňovaný šum s Poissonovým náhodným rozdělením. 
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth]{averaging-dataset-sample}
+\caption{Jeden snímek JoyConu konzole Nintendo Switch ze série testovacích snímků (A) a jeho podoba po aplikaci umělého šumu (B).}
+\label{fig:averaging-dataset-sample}
+\end{figure}
+
+\paragraph{Předzpracování série testovacích snímků} 
+bylo provedeno za účelem zhodnocení robustnosti implementované metody. Předzpracování bylo zaměřeno především na aplikaci umělého šumu na testovací data. Byly vytvořeny dvě testovací množiny s různými úrovněmi šumu:
+\begin{enumerate}
+\item Vyšší úroveň šumu
+\begin{itemize}
+\item Posunutí snímku v osách $x$ a $y$ o náhodný počet pixelů v intervalu $\left \langle -200,200 \right \rangle$.
+\item Rotace snímku podle jeho středu o náhodnou velikost úhlu v intervalu $\left \langle -190,190 \right \rangle$ stupňů.
+\item Aplikace náhodného šumu v Gaussově rozložení s variancí $\sigma^2 = 0.01$.
+\end{itemize}
+\item Nižší úroveň šumu
+\begin{itemize}
+\item Posunutí snímku v osách $x$ a $y$ o náhodný počet pixelů v intervalu $\left \langle -20,20 \right \rangle$.
+\item Rotace snímku podle jeho středu o náhodnou velikost úhlu v intervalu $\left \langle -20,20 \right \rangle$ stupňů.
+\item Aplikace náhodného šumu v Gaussově rozložení s variancí $\sigma^2 = 0.01$.
+\end{itemize}
+\end{enumerate}
+
+Předzpracovaný snímek po aplikaci vyšší úrovně šumu 1) ukazuje obrázek \ref{fig:averaging-dataset-sample} (B). Díky náhodnému posunu a rotaci snímku ve snímku vznikají prázdné pixely. Hodnota těchto pixelů je nastavena na hodnotu hran snímku. Tento jev lze také sledovat na obrázku \ref{fig:averaging-dataset-sample} (B) jako pruhované oblasti v okolí originálního snímku.
+
+\subsubsection{Výsledky aplikace metod pro odstranění šumu}
+Na uměle zašumělá data byl aplikován algoritmus obyčejného průměrován, který je porovnán s výsledky algoritmu AAR. Algoritmus byl aplikován na snímky s oběmi úrovněmi šumu, které byly specifikovány výše. Výsledky aplikace algoritmů pro nízký šum ukazuje obrázek \ref{fig:averaging-low-noise} a pro vysoký šum obrázek \ref{fig:averaging-high-noise}.
+
+V detailech obrázku \ref{fig:averaging-low-noise} (C a D) je zřejmý vliv obrazové registrace před průměrováním, kde díky transformaci snímků do stejné  souřadnicové soustavy pomocí ORB a RANSAC nejsou v detailu D viditelné artefakty způsobené odchylkami pozic testovacích snímků. Tyto artefakty jsou naopak viditelné na detailu C, u kterého transformace provedena nebyla.
+
+Výsledky na obrázku \ref{fig:averaging-high-noise} dokazují robustnost metody AAR. Ve snímku A se nachází průměr všech snímků na který byla aplikována vysoká úroveň šumu. Ze snímku je patrný veliký rozsah natočení a posunutí v osách $x$ a $y$ při aplikaci vysoké úrovně šumu. Druhý snímek B obrázku \ref{fig:averaging-high-noise} ukazuje robustnost implementované metody AAR. Ve snímku jsou patrné artefakty v okolí snímaného předmětu. Tyto artefakty jsou způsobeny nahrazováním prázdných pixelů při aplikaci šumu hodnotami hran snímku. V reálných podmínkách, kdy není šum aplikován uměle by tyto artefakty byly potlačeny.
+
+Implementací a aplikováním metody AAR se podařilo navrhnout robustní metodu pro odstranění náhodného šumu v rentgenových snímcích. Tato metoda je odolná proti šumu, který může být způsoben náhodným posunem a rotací snímaného objektu v pořízeném snímku. Díky této vlastnosti lze implementovanou metodu využít například pro odstranění šumu při rentgenování pohybujícího se objektu  .
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth]{averaging-highnoise}
+\caption{Jeden snímek JoyConu konzole Nintendo Switch ze série testovacích snímků (A) a jeho podoba po aplikaci umělého šumu (B).}
+\label{fig:averaging-high-noise}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth]{averaging-lownoise}
+\caption{Jeden snímek JoyConu konzole Nintendo Switch ze série testovacích snímků (A) a jeho podoba po aplikaci umělého šumu (B).}
+\label{fig:averaging-low-noise}
+\end{figure}
+

@@ -1,0 +1,7 @@
+\chapter{Závěr}
+
+Cílem této práce bylo na základě literární rešerše metod pro předzpracování rentgenových snímků a literární rešerše základních principů požizování rentgenových snímků navrhnout a realizovat metody pro předzpracování série snímků za účelem odstranění šumu, zvýšení dynamického rozsahu a zvětšení rozlišení. Dalším cílem práce bylo vytvořit navrhnout a realizovat software ve formě knihovny pro ukládání digitálních rentgenových snímků. Tato realizace byla provedena na základě literární rešerše dostupných datových formátů pro ukládání digitálních rentgenových snímků. 
+
+V první části práce byla provedena literární rešerše principů pořizování rentgenových snímků. Tato rešerše popisuje vznik rentgenového záření a způsob, jakým je rentgenové záření generováno v rentgenkách. V další části rešerše je popsán způsob detekce rentgenového záření. Tato část se zabývá především konstrukcí detektorů záření a jejího vlivu na výsledný snímek.
+
+Následující kapitola se zabývala obecnými principy předzpracování digitálních rentgenových snímků. V této kapitole byly nejprve popsány základní principy reprezentace obrazu a následně definovány oblasti předzpracování digitálních rentgenových snímků. Závěrečná část této kapitoly se zabývala popisem metod předzpracování rentgenových snímků. V rámci kapitoly byly všechny metody implementovány pomocí nástroje Jupyter notebook v jazyce Python. Výstupy implementace byly poté použity pro ilustraci fungování metod pro předzpracování rentgenových snímků.

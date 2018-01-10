@@ -220,8 +220,6 @@ semestral						%	sazba zprávy semestrálního projektu
 %% Vložení souboru 'text/reseni' s popisem reseni práce
 \include{text/literatni_reserse}
 
-\include{text/image_series_preproccesing}
-
 %% Vložení souboru 'text/vysledky' s popisem vysledků práce
 \include{text/vysledky}
 
