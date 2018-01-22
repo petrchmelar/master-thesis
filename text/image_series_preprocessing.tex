@@ -68,7 +68,7 @@ V případě implementace v \zk{zk:ORB} je využit FAST s kruhovým okolím 9. V
 \centering
 \includegraphics{fast}
 \caption{Princip výběru okolí a způsob indexování pixelů metody FAST. \cite{rosten_2008_faster}}
-\label{fig:orb-comparsion}
+\label{fig:fast}
 \end{figure}
 
 \paragraph{RANSAC (Random sample consensus)} je metoda sloužící k nalezení modelu, který definuje vztah mezi dvěma lineárně závislými množinami. Tato metoda pracuje s předpokladem, že k definování lineárního modelu stačí pouze dva body (na rozdíl od metody nejmenších čtverců, která předpokládá, že velké množství dat dokáže eliminovat odchylky). Algoritmus této metody lze popsat pomocí následujících bodů \cite[str.~462]{Image-Processing-Analysis-and-Machine-Vision}:
@@ -146,4 +146,132 @@ Implementací a aplikováním metody AAR se podařilo navrhnout robustní metodu
 \caption{Jeden snímek JoyConu konzole Nintendo Switch ze série testovacích snímků (A) a jeho podoba po aplikaci umělého šumu (B).}
 \label{fig:averaging-low-noise}
 \end{figure}
+\clearpage
 
+\subsection{Zvýšení dynamického rozsahu metodou HDR (High Dynamic Range)}
+Uvážíme-li situaci, kdy snímáme scénu a jako výsledek snímání obdržíme dvourozměrné pole změřených hodnot intenzity záření, tak nelze říct, že naměřené hodnoty intenzity přímo odpovídají záření ve scéně. Jinými slovy je nepravděpodobné, že pokud jedna hodnota intenzity je dvojnásobná oproti druhé, tak dopadající záření odpovídající druhé hodnotě je dvojnásobné. Tuto situaci lze sledovat především u filmových systémů, v případě systémů DR s přímým a nepřímým převodem bývá tento jev potlačen -- odezva detektoru je částečně lineární.
+
+Tato nelinearita je dle \cite{Debevec} nazývána nelineární mapování. Vznik nelinearity při převodu záření na digitální snímek závisí především na konstrukci detektoru (scintilační vrstva, typ receptoru apod.). \cite{Debevec}
+Odezva detektoru na expozici $X$ bývá označována jako charakteristická křivka detektoru.
+
+Jak u filmových, tak u DR systémů se můžeme setkat s nelinearitou, která je způsobena saturací detektorů, která omezuje dynamický rozsah detektorů. V případě, že jsou ve snímané scéně zájmové oblasti s vysokou a nízkou intenzitou záření, není díky nízkému dynamickému rozsahu detektoru možné pozorovat detaily obou oblastí -- jedna z oblastí je vždy změnou doby expozice, urychlovacího napětí nebo žhavícího proudu posunuta mezi saturační body na charakteristické křivce a druhá oblast do oblasti saturace. Pokud chceme pokrýt celý dynamický rozsah musíme pořídit sérii snímků s různými dobami expozice, hodnotami proudu nebo napětí. Metody HDR se zabývají sloučením takto pořízených snímků v jeden snímek schopný zobrazit scénu s vysokým dynamickým rozsahem. 
+Tyto metody pracuji na principu vytvoření mapy popisující intenzitu záření ve scéně, které je pak využita pro škálování hodnot intenzit digitálního snímku. 
+Jednou z těchto metod popsané v \cite{Debevec} je metoda navržena Paulem E. Debevecem.
+
+\subsubsection{Debevec HDR}
+Tato Metoda pro získání snímku s vysokým dynamickým rozsahem sloučením série snímků získaných s rozdílnými expozičními dobami se skládá ze dvou částí:
+
+\begin{itemize}
+\item estimace charakteristické křivky / funkce odezvy detektoru a
+\item sloučení série snímků -- vytvoření HDR snímku.
+\end{itemize}
+\paragraph{Estimace odezvy detektoru} je založena na principu reciprocity. Tento princip říká, že je-li expozice $E$ definována jako:
+\begin{equation}
+\label{eq:debevec_reciprocity}
+X = E \Delta t , 
+\end{equation}
+kde $E$ ozáření detektoru a $\Delta t$ doba expozice, tak při dvojnásobném snížení $E$ a dvojnásobném zvýšení $\Delta t$ se nezmění změřená hodnota intenzity. Charakteristická křivku převodu expozice $X$ na digitální snímek $Z$ lze vyjádřit pomocí funkce $f$ jako:
+\begin{equation}
+\label{eq:debevec_char}
+Z=f\left (X \right ) \Leftrightarrow X = f^{-1}\left ( Z\right ). 
+\end{equation}
+Vzhledem k tomu, že $f$ je monotónní, lze expozici $X$ získat pomocí invertované funkce $f^{-1}(Z)$, jak ukazuje rovnice \ref{eq:debevec_char}. Rovnici \ref{eq:debevec_char} po dosazení za $X$ podle rovnice \ref{eq:debevec_char} lze aplikovat na sérii digitálních snímků jako:
+\begin{equation}
+\label{eq:debevec_char_ap}
+Z_{ij}=f\left (E_i\Delta t_j \right ) \Leftrightarrow f^{-1}\left ( Z_{ij}\right ) = E_i \Delta t_j\quad,
+\end{equation}
+kde i je index pixelu ve snímku a j index snímku / doby expozice. Po aplikování přirozeného logaritmu na obě strany rovnice a zavedení substituce  $g(Z_{ij} = \ln\left( f^{_1} \right))$ je výsledná rovnice:
+\begin{equation}
+\label{eq:debevec_char_ap_fin}
+g \left( Z_{ij} \right) = \ln \left( E_i \right)  + \ln \left( \Delta t_j \right),
+\end{equation}
+kde $Z_{ij}$ a $\Delta t_j$ jsou známé hodnoty a $g$ a $E_i$ jsou neznámé, které potřebujeme nalézt. K nalezení neznámých lze využít metody nejmenších čtverců aplikované na rovnice vycházejících z rovnice \ref{eq:debevec_char_ap_fin}. Minimalizaci účelové funkce (objective function) $O$ pomocí metody nejmenších čtverců lze definovat jako:
+\begin{align}
+\label{eq:ls}
+O &= \sum_{i=1}^{N} \sum_{j=1}^{P} \left [g \left(Z_{ij}-\ln E_i - \ln\Delta t_j \right ) \right ]^2 
++ \lambda \sum_{z=Z_{min}+1}^{Z_{max}-1}{g}'' \left(z \right )^2 \\
+{g}'' \left(z \right ) &= g\left(z-1 \right ) - 2g \left(z \right ) + g\left( z+1 \right ),
+\end{align}
+kde $P$ je počet snímků, $N$ počet pixelů v jednom snímku a $Z_{min}$ a $Z_{max}$ nejnižší a nejvyšší hodnota digitálního snímku. Rovnici \ref{eq:ls} lze parafrázovat, jako nalezení $\left( Z_{max} - Z_{min} + 1\right)$ hodnot funkce $g \left( Z\right)$ a $N$ hodnot $\ln E_i$, které minimalizují účelovou funkci $O$. První část rovnice je aplikace metody nejmenších čtverců na rovnice podle rovnice \ref{eq:debevec_char_ap_fin} druhá část rovnice ${g}''$ zajišťuje je vyhlazovací operátor. Problém definovaný rovnicí \ref{eq:ls} může být vyřešen dle \cref{Debevec} například pomocí metody singulárního rozkladu -- Singular Value Decomposition (SVD).
+
+Autor této metody dodává, že je nutné ještě uvážit dvě skutečnosti. První ze skutečností je, že řešení rovnice \ref{eq:ls} lze nalézt pouze pro hodnoty $E_i$ a $g\left( z \right)$ nižší než $E_i + \alpha$ a $g\left( z \right)+ \alpha$, kde $\alpha$ je tzv. scale faktor. V případě, že tato podmínka není splněna systém rovnic a účelová funkce $O$ zůstanou nezměněny. Tento problém lze vyřešit pomocí zavedení rovnice \ref{eq:scale_factor} do lineárního systému. Díky zavedení této rovnice budou mít pixely s hodnotou přesně mezi $Z_{max}$ a $Z_{min}$ jednotkovou expozici. \cite{Debevec}
+\begin{align}
+\label{eq:scale_factor}
+g \left( Z_{mid} \right) = 0 \quad, kde \quad Z_{mid} = \frac{1}{2} \left( Z_{min} + Z_{max} \right) 
+\end{align}
+
+Druhá ze skutečností je, že obecný tvar odezvy detektoru $g \left( z \right)$ bude strmější v blízkosti $Z_{max}$ a $Z_{min}$ a díky tomu bude výsledná odezva méně vyhlazená v těchto krajních bodech. Tento problém lze vyřešit zavedením váhové funkce $w \left( z\right)$:
+\begin{align}
+\label{eq:w}
+\left\{\begin{matrix}
+z - Z_{min} & pro \quad z \leq \frac{1}{2} \left(Z_{min} + Z_{max} \right )\\ 
+Z_{max} - z & pro \quad z > \frac{1}{2} \left(Z_{min} + Z_{max} \right )
+\end{matrix}\right.
+\end{align}
+Dosazením váhové rovnice \ref{eq:w} do rovnice \ref{eq:ls} dostaneme finální rovnici pro nalezení $g$ a $E_i$:
+\begin{align}
+\label{eq:ls_final}
+O &= \sum_{i=1}^{N} \sum_{j=1}^{P} \left \{ w \left(Z_{ij} \right ) \left [g \left(Z_{ij}-\ln E_i - \ln\Delta t_j \right ) \right ] \right \}^2 
++ \lambda \sum_{z=Z_{min}+1}^{Z_{max}-1}\left [w \left(Z_{ij} \right ){g}'' \left(z \right ) \right ]^2
+\end{align}
+Implementaci estimace odezvy detektoru v matlabu pomocí výše popsané metody včetně vyřešení rovnice \ref{eq:ls_final} pomocí SVD je možné nalézt v práci autora této metody \cite{Debevec}.
+
+\paragraph{Vytvoření HDR snímku}
+je po získání odezvy detektoru v podobě funkce $g$ poměrně snadné. Reálné ozáření detektoru lze vypočítat jako:
+\begin{align}
+\label{eq:calc}
+\ln E_i=\frac{\sum_{j=1}^{P} w \left(Z_{ij} \right ) \left(g \left(Z_{ij} \right ) - \ln \Delta t_j\right )}{\sum_{j=1}^{P} w \left(Z_{ij} \right )},
+\end{align}
+kde $w$ je váhová funkce popsaná rovnicí \ref{eq:w}, které dává vyšší váhu pixelům, které odpovídají středu funkce odezvy detektoru $g$.
+
+\subsubsection{Implementace}
+Na základě metody popsané výše lze implementovat algoritmus pro získání snímku s vysokým dynamickým rozsahem ze série snímků pořízených s různou expoziční dobou. Vývojový diagram implementace popisuje obrázek \ref{fig:HDR-implementation}.
+
+Postup byl implementován pomocí jazyka Python v prostředí Jupyter notebook. V implementaci je využito balíčku scikit-image pro práci se snímky a balíčku OpenCV pro python, ve které je výše popsané metoda již implementována. Snímky jsou zobrazeny pomocí balíčku Matplotlib a pro práci s maticemi je využito balíčku numpy. 
+
+\paragraph{Tone mapping} slouží k zobrazování HDR snímků na zařízeních s omezeným dynamickým rozsahem (například běžný monitor). Pro zobrazení výsledků získaných implementací Debevecova algoritmu bylo využito několika metod, které jsou implementovány v OpenCV:
+\begin{itemize}
+\item Durandova metoda \cite{Durand},
+\item Mantiukova metoda \cite{Mantiuk},
+\item Dragova metoda \cite{Drago} a
+\item Reinhardova metoda \cite{Mantiuk}.
+\end{itemize}
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=12cm]{HDR-implementation}
+\caption{Vývojový diagram implementace metody HDR.}
+\label{fig:HDR-implementation}
+\end{figure}
+
+\subsubsection{Testovací data}
+za účelem ověření správného fungování implementovaného Debevecova algoritmu byla nasnímána testovací a kalibrační data. Jako zdroj záření, stejně jako v předchozí kapitole, byla zvolena rentgenka Spellman XRB011 a detektor s CMOS snímači Shad-o-Box 1648 HS \cite{SB1548HS} od společnosti Teledyne Dalsa.
+
+Pomocí této sestavy byly nasnímány dvě série snímků:
+\begin{itemize}
+\item Kalibrační snímky -- snímky sloužící pro estimaci odezvy detektoru. Tyto snímky byly nasnímány tak, aby na každém snímku byla alespoň jedna přeexponovaná, jedna podexponovaná oblast a alespoň jedna oblast, kde se mění intenzita se změnou expoziční doby $\Delta t$. Přeexponovaná oblast se v případě výše popsané sestavy nacházela ve všech místech přímého dopadu záření na detektor. Podexponovaná oblast byla vytvořena zastíněním části detektoru pomocí olověného plátu. Tímto způsobem byla nasnímána série snímků při \SI{60}{\kV} a \SI{250}{\micro\ampere} pro expoziční doby \SI{1000}{\ms}, \SI{500}{\ms}, \SI{250}{\ms}, \SI{125}{\ms} a \SI{60}{\ms}.
+\item Testovací snímky -- snímky pro získání HDR snímku, které jsou nasnímány stejným způsobem, jako kalibrační snímky. Snímky by měly být nasnímány tak, aby snímek s nejnižší expozicí byl podexponován a snímek s nejvyšší expozicí naopak přeexponován. Tímto způsobem bylo opět nasnímáno 5 snímků při \SI{60}{\kV} a \SI{250}{\micro\ampere} pro expoziční doby \SI{1000}{\ms}, \SI{500}{\ms}, \SI{250}{\ms}, \SI{125}{\ms} a \SI{60}{\ms}.
+\end{itemize}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth]{hdr-dataset-sample}
+\caption{Testovací snímek (A) pro získání HDR snímku a kalibrační snímek (B) pro estimaci charakteristické křivky detektoru.}
+\label{fig:hdr-dataset-sample}
+\end{figure}
+
+\paragraph{Předzpracování série testovacích snímků} bylo provedeno za účelem předpřipravení snímků pro aplikaci implementovaných metod. Kroky předzpracování je možné rozdělit do několika částí:
+\begin{itemize}
+\item Změna bytové hloubky snímků -- všechny snímky jsou nasnímány detektorem, který má 14 bitové AD převodníky. Z tohoto důvodu bylo nutné data  převést do 16 bitů, nebo 8 bitů, aby byl využit celý zobrazovací rozsah.
+\item Předpřipravení snímků pro metody v OpenCV -- vzhledem k tomu, že OpenCV jako vstupní sérii snímků vyžaduje pole 3-kanálových snímků s bitovou hloubkou 8 bitů, bylo nutné každý snímek rozšířit o další dva kanály, do kterých byly nakopírovány hodnoty odpovídající původnímu kanálu, který reprezentoval odstíny šedi.
+\end{itemize}
+
+\subsubsection{Výsledky aplikace Debevecovy metody}
+Na předzpracovaná data byl aplikován Debevecův algoritmus, který byl popsán výše. Nejdříve byla získána funkce odezvy detektoru $g$ a za pomocí této metody byl získán sloučením série testovacích dat HDR snímek. HDR snímek byl poté zobrazen pomocí čtyř tone mapping metod. Výsledný snímek lze vidět na obrázku \ref{fig:hdr-result}. Na výsledných snímcích je vidět krom zvýšeného dynamického rozsahu, také snížený šum díky skládání více snímků v jeden -- podobný princip jako v případě průměrování, kterému byla věnována předešlá kapitola. Zvýšený dynamický rozsah se projevil tak, že oproti testovacím snímkům v obrázcích \ref{fig:averaging-low-noise} a \ref{fig:hdr-dataset-sample} jsou na snímku zřetelná například tlačítka, které se nachází ve spodní části zařízení pod deskou plošného spoje. 
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth]{hdr-result}
+\caption{Vygenerovaný HDR snímek zobrazený pomocí 4 tone mapping metod.}
+\label{fig:hdr-result}
+\end{figure}

@@ -35,7 +35,7 @@ czech              % originální jazyk je čeština (výchozí)
 ]{hyperref}						% Balíček 'hyperref' pro sazbu hypertextových odkazů
 											% Nutné pro použití příkazu 'nastavenipdf' balíčku 'thesis'
 
-\usepackage{pdfpages} % Balíček umožňující vkládat stránky z PDF souborů
+\usepackage[final]{pdfpages} % Balíček umožňující vkládat stránky z PDF souborů
                       % Nutné při vkládání titulních listů a zadání přímo
                       % ve formátu PDF z informačního systému
 
@@ -140,6 +140,7 @@ semestral						%	sazba zprávy semestrálního projektu
 % math
 \usepackage{amsmath}
 
+\usepackage{dirtree}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%      Definice informací o dokumentu             %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -220,7 +221,9 @@ semestral						%	sazba zprávy semestrálního projektu
 %% Vložení souboru 'text/reseni' s popisem reseni práce
 \include{text/literatni_reserse}
 
-\include{text/image_series_preproccesing}
+\include{text/image_series_preprocessing}
+
+\include{text/image_formats}
 
 %% Vložení souboru 'text/vysledky' s popisem vysledků práce
 \include{text/vysledky}
